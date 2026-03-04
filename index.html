@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avalon Board Game Assistant</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Excalibur</h1>
+      <p class="tagline">Quest & Team Vote tracker — The Resistance: Avalon</p>
+    </header>
+
+    <!-- Setup (shown when no game or new game) -->
+    <section id="setup-section" class="panel setup-panel">
+      <h2>Game setup</h2>
+      <div class="field">
+        <label for="player-count">Number of players</label>
+        <select id="player-count">
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="player-names">Player names (comma-separated)</label>
+        <input type="text" id="player-names" placeholder="e.g. Alice, Bob, Carol, Dave, Eve" />
+      </div>
+      <p class="mission-size-hint" id="mission-size-hint"></p>
+      <div class="actions">
+        <button type="button" id="btn-start-game" class="btn btn-primary">Start game</button>
+        <button type="button" id="btn-reset" class="btn btn-ghost">Reset & new game</button>
+      </div>
+    </section>
+
+    <!-- Main game view -->
+    <section id="game-section" class="panel game-panel" hidden>
+      <div class="game-status">
+        <div class="status-row">
+          <span>Quest <strong id="current-mission-num">1</strong> of 5</span>
+          <span>Team size: <strong id="required-team-size">2</strong></span>
+          <span>Successes: <strong id="success-count" class="good">0</strong> · Fails: <strong id="fail-count" class="evil">0</strong></span>
+          <span>Rejections this round: <strong id="rejection-count">0</strong></span>
+        </div>
+        <p class="leader-label">Leader: <strong id="current-leader">—</strong></p>
+        <div class="game-status-actions">
+          <button type="button" id="btn-reset-game" class="btn btn-ghost">Reset game</button>
+        </div>
+      </div>
+
+      <!-- Propose team (Team Building Phase per rules) -->
+      <div class="card propose-team">
+        <h3>Propose Quest Team</h3>
+        <p class="proposer-label">Leader: <strong id="current-proposer">—</strong></p>
+        <p class="team-size-reminder">Assign <span id="team-size-reminder">2</span> Team Tokens (required for this Quest).</p>
+        <div id="team-checkboxes" class="team-checkboxes"></div>
+        <button type="button" id="btn-propose" class="btn btn-primary">Propose this team</button>
+      </div>
+
+      <!-- Team Vote: majority accepts; tied vote = rejection (rules) -->
+      <div class="card vote-panel" id="vote-panel">
+        <h3>Team Vote</h3>
+        <p class="proposed-by-summary" id="proposed-by-summary"></p>
+        <p class="proposed-team-summary" id="proposed-team-summary"></p>
+        <div id="vote-inputs" class="vote-inputs"></div>
+        <div class="actions">
+          <button type="button" id="btn-approve-vote" class="btn btn-primary">Submit votes</button>
+          <button type="button" id="btn-cancel-proposal" class="btn btn-ghost">Cancel proposal</button>
+        </div>
+      </div>
+
+      <!-- Quest phase: team members play Quest cards (Success/Fail); Leader shuffles and reveals -->
+      <div class="card mission-result-panel mission-result-panel--prompt" id="mission-result-panel" hidden>
+        <h3>Quest phase</h3>
+        <p>Leader (who proposed): <strong id="mission-proposed-by"></strong></p>
+        <p>Team on the Quest: <strong id="mission-team-display"></strong></p>
+        <p class="mission-outcome-prompt">Each Team member plays one Quest card (Success or Fail). Record what was revealed.</p>
+        <p id="mission-4-rule" class="note" hidden>The 4th Quest in games of 7+ players requires at least two Fail cards to be a failed Quest.</p>
+        <div id="mission-cards-inputs" class="mission-cards-inputs"></div>
+        <div class="actions actions--outcome">
+          <button type="button" id="btn-reveal-outcome" class="btn btn-primary">Reveal outcome</button>
+        </div>
+        <p class="mission-outcome-direct-prompt">Or choose outcome directly:</p>
+        <div class="actions actions--outcome">
+          <button type="button" id="btn-mission-success" class="btn btn-good">Quest success</button>
+          <button type="button" id="btn-mission-fail" class="btn btn-evil">Quest failed</button>
+        </div>
+      </div>
+
+      <!-- Votes this round (Team Vote: Approve vs Reject per rules) -->
+      <div class="card vote-rounds-card" id="vote-rounds-card">
+        <h3>Votes this round</h3>
+        <p class="note">Each proposed Team and who voted Approve vs Reject.</p>
+        <div id="vote-rounds-list" class="vote-rounds-list"></div>
+        <div id="vote-rounds-outcome-block" class="vote-rounds-outcome" hidden>
+          <p class="vote-rounds-outcome-prompt">Was this Quest successful?</p>
+          <div class="actions">
+            <button type="button" id="btn-mission-success-inline" class="btn btn-good">Quest success</button>
+            <button type="button" id="btn-mission-fail-inline" class="btn btn-evil">Quest failed</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="card history-card">
+        <h3>Quest & vote history</h3>
+        <div id="history-table-wrap" class="history-table-wrap">
+          <table id="history-table" class="history-table">
+            <thead>
+              <tr>
+                <th>Quest</th>
+                <th>Team size</th>
+                <th>Proposed by</th>
+                <th>Team</th>
+                <th>Approved (Yes)</th>
+                <th>Rejected (No)</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+        <p id="vote-rounds-note" class="note"></p>
+
+        <h4 class="player-analysis-title">By player</h4>
+        <p class="note player-analysis-legend">✓ = voted Approve, ✗ = voted Reject, (T) = on team</p>
+        <div id="player-analysis-wrap" class="history-table-wrap">
+          <table id="player-analysis-table" class="history-table player-analysis-table">
+            <thead>
+              <tr id="player-analysis-head"></tr>
+            </thead>
+            <tbody id="player-analysis-body"></tbody>
+          </table>
+        </div>
+
+        <h4 class="player-analysis-title">Relationship map</h4>
+        <p class="note">Per player: who voted for them when they led, whom they voted for, and missions they were on (success/failed).</p>
+        <div id="relationship-map" class="relationship-map"></div>
+      </div>
+    </section>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

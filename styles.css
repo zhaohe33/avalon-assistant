@@ -1,0 +1,558 @@
+:root {
+  --bg-dark: #1a1625;
+  --bg-card: #24202f;
+  --bg-input: #2d2838;
+  --border: #3d3548;
+  --text: #e8e4ef;
+  --text-muted: #9a92a8;
+  --gold: #c9a227;
+  --gold-dim: #8a7422;
+  --good: #4a7c59;
+  --good-bg: rgba(74, 124, 89, 0.2);
+  --evil: #a04040;
+  --evil-bg: rgba(160, 64, 64, 0.2);
+  --radius: 8px;
+  --font-display: "Cinzel", Georgia, serif;
+  --font-body: "Crimson Pro", Georgia, serif;
+  --grid-line: rgba(255, 255, 255, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg-dark);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.5;
+  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201, 162, 39, 0.08), transparent);
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin: 0;
+}
+
+.tagline {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.panel h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+  color: var(--gold);
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.field input::placeholder {
+  color: var(--text-muted);
+}
+
+.mission-size-hint {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-primary {
+  background: var(--gold);
+  color: var(--bg-dark);
+}
+
+.btn-primary:hover {
+  background: #d4b030;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.btn-good {
+  background: var(--good);
+  color: #fff;
+}
+
+.btn-good:hover {
+  background: #5a9469;
+}
+
+.btn-evil {
+  background: var(--evil);
+  color: #fff;
+}
+
+.btn-evil:hover {
+  background: #b85050;
+}
+
+/* Game panel */
+.game-status {
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+.status-row .good { color: #6b9b7a; }
+.status-row .evil { color: #c06060; }
+
+.leader-label {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+}
+
+.game-status-actions {
+  margin-top: 0.75rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.card h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+  color: var(--gold);
+}
+
+.proposer-label {
+  font-size: 0.95rem;
+  margin: 0 0 0.35rem;
+}
+
+.proposer-label strong { color: var(--gold); }
+
+.team-size-reminder,
+.proposed-team-summary,
+.proposed-by-summary {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0 0 0.35rem;
+}
+
+.proposed-by-summary { margin-bottom: 0.75rem; }
+
+.team-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.team-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.team-checkboxes input[type="checkbox"] {
+  width: 1.1em;
+  height: 1.1em;
+  accent-color: var(--gold);
+}
+
+.vote-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.vote-inputs label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.vote-inputs select {
+  padding: 0.35rem 0.5rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.history-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.history-table th,
+.history-table td {
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-family: var(--font-display);
+}
+
+.history-table .result-success { color: #6b9b7a; }
+.history-table .result-fail { color: #c06060; }
+.history-table .result-rejected { color: var(--text-muted); }
+
+.player-analysis-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin: 1.25rem 0 0.25rem;
+  color: var(--gold);
+}
+
+.player-analysis-legend {
+  margin-bottom: 0.5rem;
+}
+
+.player-analysis-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 0; /* allow shrink inside overflow container */
+  border: 1px solid var(--grid-line);
+  border-collapse: collapse;
+}
+
+/* Column widths via colgroup so Quest/Result stay aligned with headers */
+.player-analysis-table col.col-quest {
+  width: 4.5rem;
+}
+.player-analysis-table col.col-result {
+  width: 5.5rem;
+}
+.player-analysis-table col.col-leader {
+  width: 4.5rem;
+}
+.player-analysis-table col.col-player {
+  width: 4.5rem;
+}
+
+/* Grid: clear thin lines; headers centered, data left-aligned so content sits on grid */
+.player-analysis-table thead th,
+.player-analysis-table tbody td {
+  border: 1px solid var(--grid-line);
+  padding: 0.4rem 0.5rem;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.player-analysis-table thead th {
+  text-align: center;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-family: var(--font-display);
+}
+
+/* Quest column (first cell when present): already styled above */
+/* Result & Leader: left-aligned (use classes so rowspan rows still align) */
+.player-analysis-table tbody td.result-cell,
+.player-analysis-table tbody td.leader-cell {
+  text-align: left;
+  line-height: 1.35;
+}
+.player-analysis-table tbody td:first-child {
+  text-align: left;
+}
+
+/* Quest column: can have rowspan; center content in merged block */
+.player-analysis-table thead th:first-child,
+.player-analysis-table tbody td:first-child {
+  width: 4.5rem;
+  min-width: 4.5rem;
+  max-width: 4.5rem;
+}
+.player-analysis-table tbody td:first-child[rowspan] {
+  vertical-align: middle;
+}
+
+.player-analysis-table thead th:nth-child(2),
+.player-analysis-table tbody td:nth-child(2) {
+  width: 5.5rem;
+  min-width: 5.5rem;
+  max-width: 5.5rem;
+}
+
+.player-analysis-table .player-col {
+  width: 4.5rem;
+  min-width: 4.5rem;
+  font-size: 0.85rem;
+}
+
+/* Player cells (A–E): centered ✓(T) / ✗ style like reference */
+.player-analysis-table .player-cell {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  font-family: ui-monospace, "Cascadia Code", "Consolas", "Liberation Mono", monospace;
+  text-align: center;
+}
+
+/* Relationship map: per-player who voted for them, whom they voted for, missions with them */
+.relationship-map {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.relationship-card {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+.relationship-player-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold);
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.relationship-section {
+  margin-bottom: 0.75rem;
+}
+
+.relationship-section:last-child {
+  margin-bottom: 0;
+}
+
+.relationship-section strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.relationship-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.relationship-list li {
+  margin-bottom: 0.2rem;
+}
+
+.relationship-list li.approved { color: var(--good); }
+.relationship-list li.rejected { color: var(--evil); }
+
+.relationship-missions {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.relationship-missions .result-success { color: var(--good); }
+.relationship-missions .result-fail { color: var(--evil); }
+
+.note {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.vote-rounds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.vote-round-item {
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.vote-round-item .team {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.vote-round-item .proposed-by {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.vote-round-item .approved { color: var(--good); }
+.vote-round-item .rejected { color: var(--evil); }
+.vote-round-item .outcome {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.vote-rounds-outcome {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.vote-rounds-outcome-prompt {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+#vote-panel.hidden {
+  display: none;
+}
+
+#mission-result-panel.hidden {
+  display: none;
+}
+
+.mission-result-panel--prompt {
+  border-color: var(--gold-dim);
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.15);
+}
+
+.mission-outcome-prompt {
+  font-size: 1rem;
+  color: var(--text);
+  margin: 0.75rem 0;
+  font-weight: 600;
+}
+
+.actions--outcome {
+  margin-top: 0.5rem;
+}
+
+.mission-outcome-direct-prompt {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.mission-cards-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.mission-card-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.mission-card-name {
+  min-width: 6rem;
+}
+
+.mission-card-row select {
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
