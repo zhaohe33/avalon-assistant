@@ -53,13 +53,19 @@
     return sizes ? sizes[state.currentMission - 1] : 2;
   }
 
+  function getTeamSizesText(playerCount) {
+    const sizes = QUEST_TEAM_SIZES[playerCount];
+    if (!sizes) return '';
+    const ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
+    return sizes.map((s, i) => ordinals[i] + '=' + s).join(', ');
+  }
+
   function renderMissionSizeHint() {
     const n = parseInt($('player-count').value, 10);
-    const sizes = QUEST_TEAM_SIZES[n];
-    if (!sizes) return;
-    const ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
+    const text = getTeamSizesText(n);
+    if (!text) return;
     $('mission-size-hint').textContent =
-      'Team size per Quest: ' + sizes.map((s, i) => ordinals[i] + '=' + s).join(', ') + '.';
+      'Team size per Quest: ' + text + ' (changes with number of players).';
   }
 
   function startGame() {
@@ -127,9 +133,11 @@
 
   function renderGame() {
     const teamSize = getRequiredTeamSize();
+    const sizesText = getTeamSizesText(state.playerCount);
 
     $('current-mission-num').textContent = state.currentMission;
     $('required-team-size').textContent = teamSize;
+    $('game-team-sizes-hint').textContent = sizesText ? 'All Quests: ' + sizesText : '';
     $('success-count').textContent = state.successCount;
     $('fail-count').textContent = state.failCount;
     $('rejection-count').textContent = state.rejectionCountThisRound;

@@ -180,6 +180,11 @@ body {
 .status-row .good { color: #6b9b7a; }
 .status-row .evil { color: #c06060; }
 
+.team-sizes-hint {
+  font-size: 0.9em;
+  opacity: 0.92;
+}
+
 .leader-label {
   margin: 0.5rem 0 0;
   font-size: 0.95rem;
