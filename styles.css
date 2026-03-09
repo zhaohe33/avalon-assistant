@@ -1,4 +1,10 @@
 :root {
+  /* Phone: min touch target ~44px; use 48px for primary actions */
+  --touch-min: 48px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
   --bg-dark: #1a1625;
   --bg-card: #24202f;
   --bg-input: #2d2838;
@@ -21,9 +27,21 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
+  /* Prevent tap delay / double-tap zoom on buttons */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(201, 162, 39, 0.15);
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
   background: var(--bg-dark);
   color: var(--text);
   font-family: var(--font-body);
@@ -805,4 +823,254 @@ body {
 .mission-forced-note {
   margin-top: 0.5rem;
   color: var(--gold-dim);
+}
+
+/* -------------------------------------------------------------------------
+   Phone-first tweaks (narrow screens, touch)
+   ------------------------------------------------------------------------- */
+@media (max-width: 540px) {
+  body {
+    font-size: 17px;
+  }
+
+  .app {
+    max-width: 100%;
+    padding: 0.75rem 1rem;
+    padding-left: max(1rem, var(--safe-left));
+    padding-right: max(1rem, var(--safe-right));
+  }
+
+  .header {
+    margin-bottom: 1.25rem;
+  }
+
+  .header h1 {
+    font-size: 1.65rem;
+  }
+
+  .tagline {
+    font-size: 0.85rem;
+    line-height: 1.35;
+    padding: 0 0.25rem;
+  }
+
+  .panel {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+  }
+
+  .panel h2 {
+    font-size: 1.1rem;
+  }
+
+  .card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+  }
+
+  .card h3 {
+    font-size: 1rem;
+  }
+
+  /* Primary actions full-width, easy thumb reach */
+  .actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .actions .btn {
+    width: 100%;
+    min-height: var(--touch-min);
+    padding: 0.65rem 1rem;
+    font-size: 1rem;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+
+  .game-status-actions .btn {
+    width: 100%;
+    min-height: var(--touch-min);
+  }
+
+  /* Status blob: stack so nothing is cramped */
+  .game-status {
+    padding: 0.85rem;
+  }
+
+  .status-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .team-sizes-hint {
+    display: block;
+    width: 100%;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  .leader-label {
+    margin-top: 0.75rem;
+    font-size: 1rem;
+  }
+
+  /* Team checkboxes: one per row, big tap targets */
+  .team-checkboxes {
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: stretch;
+  }
+
+  .team-checkboxes label {
+    padding: 0.65rem 0.75rem;
+    min-height: var(--touch-min);
+    background: var(--bg-input);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 1rem;
+  }
+
+  .team-checkboxes input[type="checkbox"] {
+    width: 1.35em;
+    height: 1.35em;
+    flex-shrink: 0;
+  }
+
+  /* Vote rows: name full width, Approve | Reject side by side (big tap targets) */
+  .vote-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .vote-row .vote-player-name {
+    grid-column: 1 / -1;
+    min-width: 0;
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .vote-row .btn-vote {
+    min-height: var(--touch-min);
+    font-size: 0.95rem;
+    padding: 0.6rem 0.5rem;
+  }
+
+  .vote-row .btn-vote-approve {
+    grid-column: 1;
+  }
+
+  .vote-row .btn-vote-reject {
+    grid-column: 2;
+  }
+
+  /* 16px+ inputs avoid iOS zoom on focus */
+  .field input,
+  .field select,
+  .round-table-seat-input,
+  .field-first-leader select {
+    font-size: 16px;
+    padding: 0.65rem 0.75rem;
+    min-height: var(--touch-min);
+  }
+
+  /* Slightly smaller round table so it fits narrow screens */
+  .round-table {
+    width: min(260px, 92vw);
+    height: min(260px, 92vw);
+    max-width: 100%;
+  }
+
+  .round-table--editable {
+    min-height: min(260px, 92vw);
+  }
+
+  /* Quest outcome buttons */
+  .actions--outcome {
+    flex-direction: column;
+  }
+
+  .actions--outcome .btn {
+    width: 100%;
+    min-height: var(--touch-min);
+  }
+
+  /* History table: slightly larger tap for Edit */
+  .btn-edit {
+    min-height: 40px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  /* Modal uses full width + safe bottom */
+  .edit-modal {
+    padding: 0.5rem;
+    padding-bottom: max(0.5rem, var(--safe-bottom));
+    align-items: flex-end;
+  }
+
+  .edit-modal-box {
+    max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 1rem);
+    border-radius: 12px 12px 0 0;
+    padding: 1rem;
+    padding-bottom: max(1rem, var(--safe-bottom));
+  }
+
+  @supports not (height: 100dvh) {
+    .edit-modal-box {
+      max-height: calc(100vh - 5rem);
+    }
+  }
+
+  .edit-modal-actions .btn {
+    min-height: var(--touch-min);
+    flex: 1;
+  }
+
+  .edit-modal-result-actions {
+    flex-direction: column;
+  }
+
+  .edit-modal-result-actions .btn {
+    width: 100%;
+    min-height: var(--touch-min);
+  }
+
+  /* Relationship cards breathe on small screens */
+  .relationship-card {
+    padding: 0.85rem;
+  }
+
+  .history-table {
+    font-size: 0.8rem;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 0.45rem 0.4rem;
+  }
+}
+
+/* Very narrow: round table scroll if needed */
+@media (max-width: 360px) {
+  .round-table-setup-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .header h1 {
+    font-size: 1.45rem;
+  }
 }
