@@ -68,17 +68,106 @@
       'Team size per Quest: ' + text + ' (changes with number of players).';
   }
 
+  /** Place n seats in a circle; leaderIndex -1 for setup (no leader). showLeaderLabel: show "Leader" badge in game view. */
+  function renderRoundTable(containerId, players, leaderIndex, showLeaderLabel) {
+    const container = $(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const n = players.length;
+    if (n === 0) return;
+    const radius = 105;
+    for (let i = 0; i < n; i++) {
+      const angleDeg = (i * 360 / n) - 90;
+      const isLeader = leaderIndex >= 0 && i === leaderIndex;
+      const seat = document.createElement('div');
+      seat.className = 'round-table-seat' + (isLeader ? ' round-table-seat--leader' : '');
+      seat.style.transform = 'rotate(' + angleDeg + 'deg) translateY(-' + radius + 'px)';
+      const inner = document.createElement('span');
+      inner.style.transform = 'rotate(' + (-angleDeg) + 'deg)';
+      let label = (n > 1 ? '<span class="round-table-seat-num">Seat ' + (i + 1) + '</span>' : '') + escapeHtml(players[i]);
+      if (isLeader && showLeaderLabel) label += ' <span class="round-table-leader-badge">Leader</span>';
+      inner.innerHTML = label;
+      seat.appendChild(inner);
+      container.appendChild(seat);
+    }
+  }
+
+  /** Build setup round table with one input per seat. Preserves existing names when count changes. */
+  function renderSetupRoundTableInputs() {
+    const count = parseInt($('player-count').value, 10);
+    const container = $('setup-round-table');
+    if (!container || count < 1) return;
+    const existing = getSetupRoundTableNames();
+    container.innerHTML = '';
+    const radius = 108;
+    for (let i = 0; i < count; i++) {
+      const angleDeg = (i * 360 / count) - 90;
+      const seat = document.createElement('div');
+      seat.className = 'round-table-seat round-table-seat--editable';
+      seat.style.transform = 'rotate(' + angleDeg + 'deg) translateY(-' + radius + 'px)';
+      const inner = document.createElement('span');
+      inner.style.transform = 'rotate(' + (-angleDeg) + 'deg)';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'round-table-seat-input';
+      input.placeholder = 'Name';
+      input.setAttribute('data-seat', String(i));
+      input.autocomplete = 'off';
+      if (existing[i] !== undefined && existing[i] !== '') input.value = existing[i];
+      const numSpan = document.createElement('span');
+      numSpan.className = 'round-table-seat-num';
+      numSpan.textContent = 'Seat ' + (i + 1);
+      inner.appendChild(numSpan);
+      inner.appendChild(input);
+      seat.appendChild(inner);
+      container.appendChild(seat);
+    }
+    populateFirstLeaderSelect();
+  }
+
+  function populateFirstLeaderSelect() {
+    const sel = $('first-leader-select');
+    if (!sel) return;
+    const names = getSetupRoundTableNames();
+    const previous = sel.value;
+    sel.innerHTML = '';
+    names.forEach((name, i) => {
+      const opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = name ? (name + ' (Seat ' + (i + 1) + ')') : ('Seat ' + (i + 1) + ' — enter name');
+      if (!name) opt.disabled = true;
+      sel.appendChild(opt);
+    });
+    if (previous !== '' && names[parseInt(previous, 10)]) sel.value = previous;
+  }
+
+  function getSetupRoundTableNames() {
+    const container = $('setup-round-table');
+    if (!container) return [];
+    const inputs = container.querySelectorAll('input.round-table-seat-input');
+    return Array.from(inputs).map((inp) => inp.value.trim());
+  }
+
+  function updateSetupRoundTable() {
+    renderSetupRoundTableInputs();
+  }
+
   function startGame() {
     const count = parseInt($('player-count').value, 10);
-    const namesInput = $('player-names').value.trim();
-    const names = namesInput
-      ? namesInput.split(/[,，]/).map((s) => s.trim()).filter(Boolean)
-      : [];
+    const names = getSetupRoundTableNames();
 
     if (names.length !== count) {
-      alert('Please enter exactly ' + count + ' player names (comma-separated).');
+      alert('Please set number of players to match the round table seats.');
       return;
     }
+    const empty = names.findIndex((n) => !n);
+    if (empty !== -1) {
+      alert('Please enter a name for every seat (Seat ' + (empty + 1) + ' is empty).');
+      return;
+    }
+
+    let leaderIndex = parseInt($('first-leader-select').value, 10);
+    if (isNaN(leaderIndex) || leaderIndex < 0 || leaderIndex >= names.length) leaderIndex = 0;
 
     state = {
       players: names,
@@ -86,7 +175,7 @@
       currentMission: 1,
       successCount: 0,
       failCount: 0,
-      leaderIndex: 0,
+      leaderIndex: leaderIndex,
       rejectionCountThisRound: 0,
       proposedTeam: null,
       currentProposer: null,
@@ -116,10 +205,10 @@
       localStorage.removeItem(STORAGE_KEY);
     } catch (_) {}
     $('player-count').value = '5';
-    $('player-names').value = '';
     $('setup-section').hidden = false;
     $('game-section').hidden = true;
     renderMissionSizeHint();
+    updateSetupRoundTable();
   }
 
   function showGameSection() {
@@ -144,7 +233,10 @@
     $('current-leader').textContent = getLeaderName();
     $('current-proposer').textContent = getLeaderName();
     $('team-size-reminder').textContent = teamSize;
+    const fifthProposeNote = $('propose-team-fifth-note');
+    if (fifthProposeNote) fifthProposeNote.hidden = state.rejectionCountThisRound !== 4;
 
+    renderRoundTable('game-round-table', state.players, state.leaderIndex, true);
     renderTeamCheckboxes(teamSize);
     renderVotePanel();
     renderMissionResultPanel();
@@ -171,6 +263,7 @@
     return Array.from(checkboxes).map((el) => el.value);
   }
 
+  // After 4 rejected proposals in a row, the 5th proposal is approved without a vote (official rule).
   function proposeTeam() {
     const required = getRequiredTeamSize();
     const selected = getSelectedTeam();
@@ -180,6 +273,29 @@
     }
     state.proposedTeam = selected;
     state.currentProposer = getLeaderName();
+    const proposer = state.currentProposer;
+
+    if (state.rejectionCountThisRound >= 4) {
+      // 5th proposal: no vote — team goes straight to quest phase
+      state.voteRounds.push({
+        proposedBy: proposer,
+        proposedTeam: state.proposedTeam.slice(),
+        approvedBy: [],
+        rejectedBy: [],
+        result: 'approved',
+        forcedApproval: true,
+      });
+      state.proposedTeam = null;
+      state.currentProposer = null;
+      state.rejectionCountThisRound = 0;
+      saveState();
+      $('vote-panel').classList.add('hidden');
+      showMissionResultPanel();
+      renderGame();
+      $('mission-result-panel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     saveState();
     renderGame();
     $('vote-panel').classList.remove('hidden');
@@ -207,21 +323,42 @@
     summary.textContent = 'Team: ' + state.proposedTeam.join(', ');
     inputs.innerHTML = '';
     state.players.forEach((name) => {
-      const id = 'vote-' + name.replace(/\s/g, '-');
-      const label = document.createElement('label');
-      label.innerHTML =
-        escapeHtml(name) +
-        ' <select data-voter="' + escapeHtml(name) + '"><option value="">—</option><option value="yes">Approve</option><option value="no">Reject</option></select>';
-      inputs.appendChild(label);
+      const row = document.createElement('div');
+      row.className = 'vote-row';
+      row.setAttribute('data-voter', name);
+      row.appendChild(document.createElement('span')).className = 'vote-player-name';
+      row.querySelector('.vote-player-name').textContent = name;
+      const btnApprove = document.createElement('button');
+      btnApprove.type = 'button';
+      btnApprove.className = 'btn-vote btn-vote-approve';
+      btnApprove.textContent = 'Approve';
+      btnApprove.setAttribute('aria-pressed', 'false');
+      const btnReject = document.createElement('button');
+      btnReject.type = 'button';
+      btnReject.className = 'btn-vote btn-vote-reject';
+      btnReject.textContent = 'Reject';
+      btnReject.setAttribute('aria-pressed', 'false');
+      function setVote(v) {
+        row.setAttribute('data-vote', v);
+        btnApprove.classList.toggle('btn-vote-active', v === 'yes');
+        btnReject.classList.toggle('btn-vote-active', v === 'no');
+        btnApprove.setAttribute('aria-pressed', v === 'yes' ? 'true' : 'false');
+        btnReject.setAttribute('aria-pressed', v === 'no' ? 'true' : 'false');
+      }
+      btnApprove.addEventListener('click', function () { setVote('yes'); });
+      btnReject.addEventListener('click', function () { setVote('no'); });
+      row.appendChild(btnApprove);
+      row.appendChild(btnReject);
+      inputs.appendChild(row);
     });
   }
 
   function getVotes() {
-    const selects = document.querySelectorAll('select[data-voter]');
+    const rows = document.querySelectorAll('.vote-row[data-voter]');
     const votes = {};
-    selects.forEach((sel) => {
-      const voter = sel.getAttribute('data-voter');
-      votes[voter] = sel.value;
+    rows.forEach((row) => {
+      const voter = row.getAttribute('data-voter');
+      votes[voter] = row.getAttribute('data-vote') || '';
     });
     return votes;
   }
@@ -286,12 +423,6 @@
     state.proposedTeam = null;
     saveState();
 
-    if (state.rejectionCountThisRound >= 5) {
-      alert('Evil wins: five Teams are rejected in a single round (5 consecutive failed Votes).');
-      renderGame();
-      return;
-    }
-
     renderGame();
     $('vote-panel').classList.add('hidden');
   }
@@ -305,6 +436,10 @@
     const panel = $('mission-result-panel');
     const lastRound = state.voteRounds[state.voteRounds.length - 1];
     const team = getMissionTeam();
+    const fifthNote = $('mission-forced-approval-note');
+    if (fifthNote) {
+      fifthNote.hidden = !(lastRound && lastRound.forcedApproval);
+    }
     $('mission-proposed-by').textContent = (lastRound && lastRound.proposedBy) ? lastRound.proposedBy : (state.currentProposer || getLeaderName()) || '—';
     $('mission-team-display').textContent = team.join(', ');
     const mission4Rule = $('mission-4-rule');
@@ -373,7 +508,7 @@
     const rejectedBy = lastRound ? lastRound.rejectedBy : [];
     const proposedBy = lastRound && lastRound.proposedBy ? lastRound.proposedBy : getLeaderName();
 
-    state.history.push({
+    const historyRow = {
       mission: state.currentMission,
       teamSize: getRequiredTeamSize(),
       proposedBy,
@@ -381,7 +516,9 @@
       approvedBy: approvedBy.slice(),
       rejectedBy: rejectedBy.slice(),
       result,
-    });
+    };
+    if (lastRound && lastRound.forcedApproval) historyRow.forcedApproval = true;
+    state.history.push(historyRow);
 
     if (result === 'success') state.successCount++;
     else state.failCount++;
@@ -424,10 +561,155 @@
     $('mission-result-panel').classList.add('hidden');
   }
 
+  let editModalContext = null; // { type: 'history'|'voteround', index }
+
+  function recalcMissionCountsFromHistory() {
+    state.successCount = state.history.filter(function (r) { return r.result === 'success'; }).length;
+    state.failCount = state.history.filter(function (r) { return r.result === 'fail'; }).length;
+  }
+
+  function openEditModal() {
+    const modal = $('edit-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeEditModal() {
+    const modal = $('edit-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+    editModalContext = null;
+  }
+
+  function buildVoteRowsFromArrays(approvedBy, rejectedBy) {
+    const container = $('edit-modal-votes');
+    if (!container) return;
+    container.innerHTML = '';
+    state.players.forEach(function (name) {
+      const row = document.createElement('div');
+      row.className = 'vote-row';
+      row.setAttribute('data-voter', name);
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'vote-player-name';
+      nameSpan.textContent = name;
+      row.appendChild(nameSpan);
+      const inApprove = approvedBy && approvedBy.indexOf(name) !== -1;
+      const inReject = rejectedBy && rejectedBy.indexOf(name) !== -1;
+      const current = inApprove ? 'yes' : inReject ? 'no' : '';
+      const btnApprove = document.createElement('button');
+      btnApprove.type = 'button';
+      btnApprove.className = 'btn-vote btn-vote-approve' + (current === 'yes' ? ' btn-vote-active' : '');
+      btnApprove.textContent = 'Approve';
+      const btnReject = document.createElement('button');
+      btnReject.type = 'button';
+      btnReject.className = 'btn-vote btn-vote-reject' + (current === 'no' ? ' btn-vote-active' : '');
+      btnReject.textContent = 'Reject';
+      function setVote(v) {
+        row.setAttribute('data-vote', v);
+        btnApprove.classList.toggle('btn-vote-active', v === 'yes');
+        btnReject.classList.toggle('btn-vote-active', v === 'no');
+      }
+      btnApprove.addEventListener('click', function () { setVote('yes'); });
+      btnReject.addEventListener('click', function () { setVote('no'); });
+      if (current) row.setAttribute('data-vote', current === 'yes' ? 'yes' : 'no');
+      row.appendChild(btnApprove);
+      row.appendChild(btnReject);
+      container.appendChild(row);
+    });
+  }
+
+  function getVotesFromEditModal() {
+    const rows = document.querySelectorAll('#edit-modal-votes .vote-row[data-voter]');
+    const votes = {};
+    rows.forEach(function (row) {
+      votes[row.getAttribute('data-voter')] = row.getAttribute('data-vote') || '';
+    });
+    return votes;
+  }
+
+  function openEditHistory(index) {
+    const row = state.history[index];
+    if (!row) return;
+    editModalContext = { type: 'history', index: index };
+    $('edit-modal-title').textContent = 'Edit Quest ' + row.mission + ' entry';
+    $('edit-modal-summary').textContent =
+      'Proposed by: ' + (row.proposedBy || '—') + ' · Team: ' + (row.proposedTeam || []).join(', ');
+    buildVoteRowsFromArrays(row.approvedBy || [], row.rejectedBy || []);
+    const resultBlock = $('edit-modal-result-block');
+    if (row.result === 'success' || row.result === 'fail') {
+      resultBlock.hidden = false;
+      const setResultStyle = function (r) {
+        $('edit-modal-result-success').classList.toggle('btn-vote-active', r === 'success');
+        $('edit-modal-result-fail').classList.toggle('btn-vote-active', r === 'fail');
+        resultBlock.setAttribute('data-edit-result', r);
+      };
+      setResultStyle(row.result);
+      $('edit-modal-result-success').onclick = function () { setResultStyle('success'); };
+      $('edit-modal-result-fail').onclick = function () { setResultStyle('fail'); };
+    } else {
+      resultBlock.hidden = true;
+      resultBlock.removeAttribute('data-edit-result');
+    }
+    openEditModal();
+  }
+
+  function openEditVoteRound(index) {
+    const round = state.voteRounds[index];
+    if (!round) return;
+    editModalContext = { type: 'voteround', index: index };
+    $('edit-modal-title').textContent = 'Edit proposal ' + (index + 1) + ' (this round)';
+    $('edit-modal-summary').textContent =
+      'Leader: ' + (round.proposedBy || '—') + ' · Team: ' + (round.proposedTeam || []).join(', ');
+    buildVoteRowsFromArrays(round.approvedBy || [], round.rejectedBy || []);
+    $('edit-modal-result-block').hidden = true;
+    openEditModal();
+  }
+
+  function saveEditModal() {
+    if (!editModalContext) return;
+    const votes = getVotesFromEditModal();
+    const approvedBy = [];
+    const rejectedBy = [];
+    state.players.forEach(function (name) {
+      const v = votes[name];
+      if (v === 'yes') approvedBy.push(name);
+      else if (v === 'no') rejectedBy.push(name);
+    });
+    const missing = state.players.filter(function (n) { return !votes[n] || votes[n] === ''; });
+    if (missing.length > 0) {
+      alert('Set Approve or Reject for every player: ' + missing.join(', '));
+      return;
+    }
+    if (editModalContext.type === 'history') {
+      const row = state.history[editModalContext.index];
+      if (!row) return;
+      row.approvedBy = approvedBy.slice();
+      row.rejectedBy = rejectedBy.slice();
+      const resultBlock = $('edit-modal-result-block');
+      if (!resultBlock.hidden && resultBlock.getAttribute('data-edit-result')) {
+        const newResult = resultBlock.getAttribute('data-edit-result');
+        if (newResult === 'success' || newResult === 'fail') row.result = newResult;
+      }
+      recalcMissionCountsFromHistory();
+    } else if (editModalContext.type === 'voteround') {
+      const round = state.voteRounds[editModalContext.index];
+      if (!round) return;
+      round.approvedBy = approvedBy.slice();
+      round.rejectedBy = rejectedBy.slice();
+    }
+    saveState();
+    closeEditModal();
+    renderGame();
+  }
+
   function renderHistory() {
     const tbody = $('history-body');
     tbody.innerHTML = '';
-    state.history.forEach((row) => {
+    state.history.forEach(function (row, index) {
       const tr = document.createElement('tr');
       const resultClass =
         row.result === 'success' ? 'result-success' :
@@ -435,14 +717,30 @@
       const resultText =
         row.result === 'success' ? 'Success' :
         row.result === 'fail' ? 'Failed' : 'Rejected';
+      const approveCell = row.forcedApproval ? '— (no vote)' : escapeHtml(row.approvedBy.join(', ') || '—');
+      const rejectCell = row.forcedApproval ? '— (no vote)' : escapeHtml(row.rejectedBy.join(', ') || '—');
+      const resultCell = row.forcedApproval && (row.result === 'success' || row.result === 'fail')
+        ? resultText + ' · 5th auto'
+        : resultText;
       tr.innerHTML =
         '<td>' + row.mission + '</td>' +
         '<td>' + row.teamSize + '</td>' +
         '<td>' + escapeHtml(row.proposedBy || '—') + '</td>' +
         '<td>' + escapeHtml(row.proposedTeam.join(', ')) + '</td>' +
-        '<td>' + escapeHtml(row.approvedBy.join(', ') || '—') + '</td>' +
-        '<td>' + escapeHtml(row.rejectedBy.join(', ') || '—') + '</td>' +
-        '<td class="' + resultClass + '">' + resultText + '</td>';
+        '<td>' + approveCell + '</td>' +
+        '<td>' + rejectCell + '</td>' +
+        '<td class="' + resultClass + '">' + resultCell + '</td>';
+      const tdEdit = document.createElement('td');
+      tdEdit.className = 'col-actions';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-ghost btn-edit';
+      btn.textContent = 'Edit';
+      (function (idx) {
+        btn.addEventListener('click', function () { openEditHistory(idx); });
+      })(index);
+      tdEdit.appendChild(btn);
+      tr.appendChild(tdEdit);
       tbody.appendChild(tr);
     });
     renderPlayerAnalysisTable();
@@ -593,13 +891,16 @@
   function renderVoteRounds() {
     const list = $('vote-rounds-list');
     list.innerHTML = '';
-    state.voteRounds.forEach((round, i) => {
+    state.voteRounds.forEach(function (round, i) {
       const div = document.createElement('div');
       div.className = 'vote-round-item';
-      const outcomeText =
+      let outcomeText =
         round.result === 'approved'
           ? '— Approved (select Quest success or failed below)'
           : '— Rejected';
+      if (round.forcedApproval) {
+        outcomeText = '— Approved without vote (5th proposal after 4 rejections)';
+      }
       const proposedBy = round.proposedBy || '—';
       div.innerHTML =
         '<div class="team">Proposal ' + (i + 1) + ': ' + escapeHtml(round.proposedTeam.join(', ')) + '</div>' +
@@ -607,6 +908,14 @@
         '<span class="approved">Approve: ' + escapeHtml(round.approvedBy.join(', ') || '—') + '</span><br />' +
         '<span class="rejected">Reject: ' + escapeHtml(round.rejectedBy.join(', ') || '—') + '</span>' +
         '<div class="outcome">' + outcomeText + '</div>';
+      const btnEdit = document.createElement('button');
+      btnEdit.type = 'button';
+      btnEdit.className = 'btn btn-ghost btn-edit vote-round-edit';
+      btnEdit.textContent = 'Edit votes';
+      (function (idx) {
+        btnEdit.addEventListener('click', function () { openEditVoteRound(idx); });
+      })(i);
+      div.appendChild(btnEdit);
       list.appendChild(div);
     });
     $('vote-rounds-card').hidden = state.voteRounds.length === 0;
@@ -635,7 +944,12 @@
   }
 
   function bind() {
-    $('player-count').addEventListener('change', renderMissionSizeHint);
+    $('player-count').addEventListener('change', function () {
+      renderMissionSizeHint();
+      updateSetupRoundTable();
+    });
+    const setupTable = $('setup-round-table');
+    if (setupTable) setupTable.addEventListener('input', populateFirstLeaderSelect);
     $('btn-start-game').addEventListener('click', startGame);
     $('btn-reset').addEventListener('click', resetGame);
     $('btn-reset-game').addEventListener('click', resetGame);
@@ -647,11 +961,15 @@
     $('btn-mission-fail').addEventListener('click', () => recordMissionResult('fail'));
     $('btn-mission-success-inline').addEventListener('click', () => recordMissionResult('success'));
     $('btn-mission-fail-inline').addEventListener('click', () => recordMissionResult('fail'));
+    $('edit-modal-cancel').addEventListener('click', closeEditModal);
+    $('edit-modal-save').addEventListener('click', saveEditModal);
+    $('edit-modal-backdrop').addEventListener('click', closeEditModal);
   }
 
   function init() {
     bind();
     renderMissionSizeHint();
+    updateSetupRoundTable();
     if (loadState() && state.players && state.players.length > 0) {
       showGameSection();
       renderGame();
