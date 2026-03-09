@@ -125,166 +125,99 @@ body {
   margin: 0.35rem 0 0;
 }
 
-/* Setup section must not clip the seat map */
 #setup-section {
   overflow: visible;
 }
 
-.round-table-setup-wrap {
+/* Player list (replaces round table circle everywhere) */
+.player-list-setup-wrap {
   margin-bottom: 1rem;
-  overflow: visible; /* seats orbit outside box; don’t clip on phones */
 }
 
-.round-table-label {
+.player-list-label {
   font-size: 0.9rem;
   color: var(--text-muted);
-  margin: 0 0 0.5rem;
-  text-align: center;
+  margin: 0 0 0.75rem;
 }
 
-.round-table {
-  position: relative;
-  width: 260px;
-  height: 260px;
-  margin: 0 auto;
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.round-table-seat {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 72px;
-  margin-left: -36px;
-  margin-top: -36px;
-  text-align: center;
-  font-size: 0.85rem;
-  line-height: 1.3;
-}
-
-.round-table-seat span {
-  display: inline-block;
-  padding: 0.35rem 0.5rem;
+.player-list-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  white-space: nowrap;
-  max-width: 90px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border-radius: 8px;
 }
 
-.round-table-seat--leader span {
+.player-list-row--leader {
   border-color: var(--gold);
-  color: var(--gold);
-  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.3);
+  box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.25);
 }
 
-.round-table-leader-badge {
-  display: block;
+.player-list-seat-num {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-width: 3.25rem;
+}
+
+.player-list-row--game .player-list-seat-num {
+  min-width: 1.75rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.player-list-name {
+  flex: 1;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.player-list-row--leader .player-list-name {
+  color: var(--gold);
+}
+
+.player-list-badge {
+  flex-shrink: 0;
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--gold);
-  margin-top: 0.2rem;
 }
 
-.round-table-seat-num {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-bottom: 0.2rem;
-}
-
-.round-table--editable {
-  min-height: 260px;
-  overflow: visible;
-}
-
-/* Phone: seat map as a simple vertical list so it’s always visible (circle was clipped) */
-@media (max-width: 540px) {
-  .round-table-setup-wrap .round-table.round-table--editable {
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.25rem 0;
-    position: relative;
-  }
-
-  .round-table-setup-wrap .round-table--editable .round-table-seat.round-table-seat--editable {
-    position: relative;
-    left: auto;
-    top: auto;
-    margin: 0;
-    width: 100%;
-    max-width: 100%;
-    transform: none !important;
-  }
-
-  .round-table-setup-wrap .round-table--editable .round-table-seat--editable > span {
-    transform: none !important;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-    max-width: none;
-    white-space: normal;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-sizing: border-box;
-  }
-
-  .round-table-setup-wrap .round-table-seat--editable .round-table-seat-num {
-    flex-shrink: 0;
-    margin-bottom: 0;
-    min-width: 3.5rem;
-  }
-
-  .round-table-setup-wrap .round-table-seat-input {
-    flex: 1;
-    width: auto;
-    min-width: 0;
-    margin-top: 0;
-    text-align: left;
-  }
-}
-
-.round-table-seat--editable span {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.35rem 0;
-}
-
-.round-table-seat-input {
-  width: 82px;
-  padding: 0.4rem 0.5rem;
-  margin-top: 0.25rem;
-  font-size: 0.85rem;
-  text-align: center;
-  background: var(--bg-input);
+.player-list-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  font-size: 1rem;
+  text-align: left;
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
   font-family: inherit;
 }
 
-.round-table-seat-input::placeholder {
+.player-list-input::placeholder {
   color: var(--text-muted);
 }
 
-.round-table-seat-input:focus {
+.player-list-input:focus {
   outline: none;
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.2);
 }
 
-.round-table-card .note {
+.player-list-card .note {
   margin-bottom: 0.75rem;
 }
 
@@ -1036,22 +969,11 @@ body {
   /* 16px+ inputs avoid iOS zoom on focus */
   .field input,
   .field select,
-  .round-table-seat-input,
+  .player-list-input,
   .field-first-leader select {
     font-size: 16px;
     padding: 0.65rem 0.75rem;
     min-height: var(--touch-min);
-  }
-
-  /* Game round table only — setup uses list layout above */
-  .round-table-card .round-table:not(.round-table--editable) {
-    width: min(260px, 92vw);
-    height: min(260px, 92vw);
-    max-width: 100%;
-  }
-
-  .round-table-card .round-table--editable {
-    min-height: min(260px, 92vw);
   }
 
   /* Quest outcome buttons */

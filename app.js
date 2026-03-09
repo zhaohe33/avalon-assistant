@@ -68,59 +68,58 @@
       'Team size per Quest: ' + text + ' (changes with number of players).';
   }
 
-  /** Place n seats in a circle; leaderIndex -1 for setup (no leader). showLeaderLabel: show "Leader" badge in game view. */
-  function renderRoundTable(containerId, players, leaderIndex, showLeaderLabel) {
+  /** Game view: player list with current leader highlighted. */
+  function renderPlayerList(containerId, players, leaderIndex, showLeaderLabel) {
     const container = $(containerId);
     if (!container) return;
     container.innerHTML = '';
     const n = players.length;
     if (n === 0) return;
-    const radius = 105;
     for (let i = 0; i < n; i++) {
-      const angleDeg = (i * 360 / n) - 90;
       const isLeader = leaderIndex >= 0 && i === leaderIndex;
-      const seat = document.createElement('div');
-      seat.className = 'round-table-seat' + (isLeader ? ' round-table-seat--leader' : '');
-      seat.style.transform = 'rotate(' + angleDeg + 'deg) translateY(-' + radius + 'px)';
-      const inner = document.createElement('span');
-      inner.style.transform = 'rotate(' + (-angleDeg) + 'deg)';
-      let label = (n > 1 ? '<span class="round-table-seat-num">Seat ' + (i + 1) + '</span>' : '') + escapeHtml(players[i]);
-      if (isLeader && showLeaderLabel) label += ' <span class="round-table-leader-badge">Leader</span>';
-      inner.innerHTML = label;
-      seat.appendChild(inner);
-      container.appendChild(seat);
+      const row = document.createElement('div');
+      row.className = 'player-list-row' + (isLeader ? ' player-list-row--leader' : '');
+      const num = document.createElement('span');
+      num.className = 'player-list-seat-num';
+      num.textContent = String(i + 1);
+      const name = document.createElement('span');
+      name.className = 'player-list-name';
+      name.textContent = players[i];
+      row.appendChild(num);
+      row.appendChild(name);
+      if (isLeader && showLeaderLabel) {
+        const badge = document.createElement('span');
+        badge.className = 'player-list-badge';
+        badge.textContent = 'Leader';
+        row.appendChild(badge);
+      }
+      container.appendChild(row);
     }
   }
 
-  /** Build setup round table with one input per seat. Preserves existing names when count changes. */
+  /** Setup: one row per seat with name input. Order = seating / leader rotation. */
   function renderSetupRoundTableInputs() {
     const count = parseInt($('player-count').value, 10);
     const container = $('setup-round-table');
     if (!container || count < 1) return;
     const existing = getSetupRoundTableNames();
     container.innerHTML = '';
-    const radius = 108;
     for (let i = 0; i < count; i++) {
-      const angleDeg = (i * 360 / count) - 90;
-      const seat = document.createElement('div');
-      seat.className = 'round-table-seat round-table-seat--editable';
-      seat.style.transform = 'rotate(' + angleDeg + 'deg) translateY(-' + radius + 'px)';
-      const inner = document.createElement('span');
-      inner.style.transform = 'rotate(' + (-angleDeg) + 'deg)';
+      const row = document.createElement('div');
+      row.className = 'player-list-row player-list-row--editable';
+      const numSpan = document.createElement('span');
+      numSpan.className = 'player-list-seat-num';
+      numSpan.textContent = 'Seat ' + (i + 1);
       const input = document.createElement('input');
       input.type = 'text';
-      input.className = 'round-table-seat-input';
+      input.className = 'player-list-input';
       input.placeholder = 'Name';
       input.setAttribute('data-seat', String(i));
       input.autocomplete = 'off';
       if (existing[i] !== undefined && existing[i] !== '') input.value = existing[i];
-      const numSpan = document.createElement('span');
-      numSpan.className = 'round-table-seat-num';
-      numSpan.textContent = 'Seat ' + (i + 1);
-      inner.appendChild(numSpan);
-      inner.appendChild(input);
-      seat.appendChild(inner);
-      container.appendChild(seat);
+      row.appendChild(numSpan);
+      row.appendChild(input);
+      container.appendChild(row);
     }
     populateFirstLeaderSelect();
   }
@@ -144,7 +143,7 @@
   function getSetupRoundTableNames() {
     const container = $('setup-round-table');
     if (!container) return [];
-    const inputs = container.querySelectorAll('input.round-table-seat-input');
+    const inputs = container.querySelectorAll('input.player-list-input');
     return Array.from(inputs).map((inp) => inp.value.trim());
   }
 
@@ -157,7 +156,7 @@
     const names = getSetupRoundTableNames();
 
     if (names.length !== count) {
-      alert('Please set number of players to match the round table seats.');
+      alert('Please set number of players to match the number of seats in the list.');
       return;
     }
     const empty = names.findIndex((n) => !n);
@@ -236,7 +235,7 @@
     const fifthProposeNote = $('propose-team-fifth-note');
     if (fifthProposeNote) fifthProposeNote.hidden = state.rejectionCountThisRound !== 4;
 
-    renderRoundTable('game-round-table', state.players, state.leaderIndex, true);
+    renderPlayerList('game-round-table', state.players, state.leaderIndex, true);
     renderTeamCheckboxes(teamSize);
     renderVotePanel();
     renderMissionResultPanel();

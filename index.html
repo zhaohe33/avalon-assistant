@@ -33,9 +33,9 @@
           <option value="10">10</option>
         </select>
       </div>
-      <div id="setup-round-table-wrap" class="round-table-setup-wrap">
-        <p class="round-table-label">Enter each player's name in their seat (clockwise).</p>
-        <div id="setup-round-table" class="round-table round-table--editable"></div>
+      <div id="setup-round-table-wrap" class="player-list-setup-wrap">
+        <p class="player-list-label">Enter each player's name in order (first = first leader if not changed below).</p>
+        <div id="setup-round-table" class="player-list player-list--editable"></div>
         <div class="field field-first-leader">
           <label for="first-leader-select">First leader (Quest 1)</label>
           <select id="first-leader-select"></select>
@@ -65,11 +65,11 @@
         </div>
       </div>
 
-      <!-- Round table (seating order, leader highlighted) -->
-      <div class="card round-table-card">
-        <h3>Round table</h3>
-        <p class="note">Seating order (clockwise). Crown = current leader.</p>
-        <div id="game-round-table" class="round-table"></div>
+      <!-- Player order (leader highlighted) -->
+      <div class="card player-list-card">
+        <h3>Players & leader</h3>
+        <p class="note">Order is seating / leader rotation. Highlight = current leader.</p>
+        <div id="game-round-table" class="player-list player-list--game"></div>
       </div>
 
       <!-- Propose team (Team Building Phase per rules) -->
