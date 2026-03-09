@@ -125,8 +125,14 @@ body {
   margin: 0.35rem 0 0;
 }
 
+/* Setup section must not clip the seat map */
+#setup-section {
+  overflow: visible;
+}
+
 .round-table-setup-wrap {
   margin-bottom: 1rem;
+  overflow: visible; /* seats orbit outside box; don’t clip on phones */
 }
 
 .round-table-label {
@@ -191,6 +197,61 @@ body {
 
 .round-table--editable {
   min-height: 260px;
+  overflow: visible;
+}
+
+/* Phone: seat map as a simple vertical list so it’s always visible (circle was clipped) */
+@media (max-width: 540px) {
+  .round-table-setup-wrap .round-table.round-table--editable {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    position: relative;
+  }
+
+  .round-table-setup-wrap .round-table--editable .round-table-seat.round-table-seat--editable {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    transform: none !important;
+  }
+
+  .round-table-setup-wrap .round-table--editable .round-table-seat--editable > span {
+    transform: none !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: none;
+    white-space: normal;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+
+  .round-table-setup-wrap .round-table-seat--editable .round-table-seat-num {
+    flex-shrink: 0;
+    margin-bottom: 0;
+    min-width: 3.5rem;
+  }
+
+  .round-table-setup-wrap .round-table-seat-input {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    margin-top: 0;
+    text-align: left;
+  }
 }
 
 .round-table-seat--editable span {
@@ -982,14 +1043,14 @@ body {
     min-height: var(--touch-min);
   }
 
-  /* Slightly smaller round table so it fits narrow screens */
-  .round-table {
+  /* Game round table only — setup uses list layout above */
+  .round-table-card .round-table:not(.round-table--editable) {
     width: min(260px, 92vw);
     height: min(260px, 92vw);
     max-width: 100%;
   }
 
-  .round-table--editable {
+  .round-table-card .round-table--editable {
     min-height: min(260px, 92vw);
   }
 
@@ -1059,17 +1120,8 @@ body {
   }
 }
 
-/* Very narrow: round table scroll if needed */
+/* Very narrow */
 @media (max-width: 360px) {
-  .round-table-setup-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-left: -0.5rem;
-    margin-right: -0.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-
   .header h1 {
     font-size: 1.45rem;
   }

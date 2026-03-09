@@ -944,10 +944,16 @@
   }
 
   function bind() {
-    $('player-count').addEventListener('change', function () {
+    function onPlayerCountChange() {
       renderMissionSizeHint();
-      updateSetupRoundTable();
-    });
+      // Defer so mobile native select closes first; DOM updates reliably
+      setTimeout(function () {
+        updateSetupRoundTable();
+      }, 0);
+    }
+    $('player-count').addEventListener('change', onPlayerCountChange);
+    // Some mobile browsers only fire change on blur; input fires when value changes
+    $('player-count').addEventListener('input', onPlayerCountChange);
     const setupTable = $('setup-round-table');
     if (setupTable) setupTable.addEventListener('input', populateFirstLeaderSelect);
     $('btn-start-game').addEventListener('click', startGame);
